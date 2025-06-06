@@ -2,7 +2,7 @@ const params = new URLSearchParams(window.location.search);
 const seriesKey = params.get("series");
 const quality = params.get("quality") || "480p";
 
-fetch("backend/series.json")
+fetch("https://moviemania-backend-k8ot.onrender.com/series.json")
   .then(res => res.json())
   .then(data => {
     const series = data[seriesKey];
