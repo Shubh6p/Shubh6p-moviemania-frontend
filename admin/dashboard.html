@@ -28,6 +28,8 @@
       <a href="#" data-panel="addMovie">➕ Add Post</a>
       <a href="#" data-panel="addSeries">🎬 Add Series Links</a>
       <a href="#" data-panel="generateJSON">⚙ Generate JSON</a>
+      <a href="#" data-panel="deleteMovie">🗑 Delete Movie</a>
+      <a href="#" data-panel="deleteSeries">🗑 Delete Series</a>
       <a href="#" data-panel="analyticsDashboard" onclick="loadAnalytics()">📊 Analytics</a>
       <a href="#" data-panel="backupExport">📥 Backup & Export</a>
       <a href="#" data-panel="notifications" onclick="loadNotifications()">
@@ -110,6 +112,21 @@
       <button onclick="mergeAndFormatJSON()">Format JSON</button>
       <pre id="output"></pre>
     </div>
+
+    <!-- Delete Movies and Series -->
+     <!-- Delete Movie Panel -->
+<div id="deleteMovie" class="panel form-container">
+  <h2>🗑 Delete Movie</h2>
+  <input id="deleteMovieId" placeholder="Enter Movie ID (e.g., inception)" />
+  <button onclick="confirmDeleteMovie()">Delete Movie</button>
+</div>
+
+<!-- Delete Series Panel -->
+<div id="deleteSeries" class="panel form-container">
+  <h2>🗑 Delete Series</h2>
+  <input id="deleteSeriesId" placeholder="Enter Series ID (e.g., naruto)" />
+  <button onclick="confirmDeleteSeries()">Delete Series</button>
+</div>
 
     <div id="analyticsDashboard" class="panel form-container">
       <h2>📊 Site Analytics</h2>

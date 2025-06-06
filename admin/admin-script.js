@@ -190,6 +190,36 @@ function changeAdminPassword() {
     });
 }
 
+function confirmDeleteMovie() {
+  const id = val("deleteMovieId");
+  if (!id) return alert("❌ Please enter a movie ID.");
+  if (!confirm(`Are you sure you want to delete movie '${id}'?`)) return;
+
+  fetch(`https://moviemania-backend-k8ot.onrender.com/api/delete/movie/${id}`, {
+    method: "DELETE"
+  })
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      document.getElementById("deleteMovieId").value = "";
+    });
+}
+
+function confirmDeleteSeries() {
+  const id = val("deleteSeriesId");
+  if (!id) return alert("❌ Please enter a series ID.");
+  if (!confirm(`Are you sure you want to delete series '${id}'?`)) return;
+
+  fetch(`https://moviemania-backend-k8ot.onrender.com/api/delete/series/${id}`, {
+    method: "DELETE"
+  })
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      document.getElementById("deleteSeriesId").value = "";
+    });
+}
+
 function loadAnalytics() {
   fetch("https://moviemania-backend-k8ot.onrender.com/api/stats")
     .then(res => res.json())
