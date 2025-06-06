@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - MovieMania</title>
+  <link rel="stylesheet" href="admin-style.css" />
+  <script src="admin-script.js" defer></script>
+</head>
+<body onload="isAuthenticated(); loadMyProfile()">
+  <div class="header">
+    <h1>MovieMania Admin</h1>
+    <div class="profile-container" tabindex="0">
+      <div class="profile-icon">P</div>
+        <div class="dropdown-menu">
+        <a href="#" onclick="showPanel('myProfile'); loadMyProfile()">My Profile</a>
+        <a href="#" onclick="showPanel('loginSessions'); loadSessions()">Check Login Sessions</a>
+        <a href="#" onclick="showPanel('manageAdmins'); loadAdmins()">Manage Admins</a>
+        <a href="#" onclick="showPanel('changePassword')">Change Password</a>
+        <a href="#" onclick="logout()">Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard container">
+    <h2>Welcome, Admin!</h2>
+    <div class="nav">
+      <a href="#" data-panel="addMovie">➕ Add Post</a>
+      <a href="#" data-panel="addSeries">🎬 Add Series Links</a>
+      <a href="#" data-panel="generateJSON">⚙ Generate JSON</a>
+      <a href="#" data-panel="analyticsDashboard" onclick="loadAnalytics()">📊 Analytics</a>
+      <a href="#" data-panel="backupExport">📥 Backup & Export</a>
+      <a href="#" data-panel="notifications" onclick="loadNotifications()">
+  🔔 Notifications <span id="notif-dot" style="display:none; background:red; border-radius:50%; width:10px; height:10px; display:inline-block;"></span>
+</a>
+    </div>
+
+    <!-- Panels -->
+    <div id="myProfile" class="panel form-container active">
+      <h2>My Profile</h2>
+      <p><strong>Username:</strong> <span id="myProfileUsername"></span></p>
+      <p><strong>Role:</strong> <span id="myProfileRole"></span></p>
+      <p><strong>Created At:</strong> <span id="myProfileCreated"></span></p>
+      <p><strong>Last Login:</strong> <span id="myProfileLastLogin"></span></p>
+    </div>
+
+    <div id="loginSessions" class="panel form-container">
+      <h2>Login Activity</h2>
+      <table class="session-table">
+        <thead>
+          <tr><th>User</th><th>IP</th><th>Time</th></tr>
+        </thead>
+        <tbody id="sessionLogs"></tbody>
+      </table>
+    </div>
+
+    <div id="manageAdmins" class="panel form-container">
+      <h2>Manage Admins</h2>
+      <div>
+        <input id="newAdminUsername" placeholder="Username" />
+        <input id="newAdminPassword" placeholder="Password" />
+        <input id="newAdminRole" placeholder="Role (admin/owner)" />
+        <button onclick="addAdmin()">Add Admin</button>
+      </div>
+      <table class="session-table" style="margin-top: 20px">
+        <thead>
+          <tr><th>Username</th><th>Role</th><th>Created</th><th>Action</th></tr>
+        </thead>
+        <tbody id="adminList"></tbody>
+      </table>
+    </div>
+
+    <div id="addMovie" class="panel form-container">
+      <h2>Add New Movie</h2>
+      <input id="id" placeholder="e.g., inception" />
+      <input id="title" placeholder="e.g., Inception" />
+      <input id="category" placeholder="e.g., movie,hollywood,action" />
+      <input id="details" placeholder="e.g., Dual Audio Movie 480p | 720p | 1080p" />
+      <input type="file" id="posterInput" onchange="previewImage('posterInput', 'posterPreview')" />
+      <img id="posterPreview" class="preview" src="" />
+      <input id="releaseDate" placeholder="e.g., July 16, 2010" />
+      <textarea id="summary"></textarea>
+      <input id="rating" placeholder="e.g., 8.8" />
+      <input id="languages" placeholder="e.g., English, Hindi" />
+      <input id="countries" placeholder="e.g., USA" />
+      <input id="trailer" placeholder="https://www.youtube.com/embed/YoHD9XEInc0" />
+      <input id="link480" placeholder="Download 480p" />
+      <input id="link720" placeholder="Download 720p" />
+      <input id="link1080" placeholder="Download 1080p" />
+      <button onclick="saveToServer()">Save to Server</button>
+      <pre id="output"></pre>
+    </div>
+
+    <div id="addSeries" class="panel form-container">
+      <h2>Add Series</h2>
+      <input id="seriesId" placeholder="e.g., naruto" />
+      <input id="seriesTitle" placeholder="e.g., Naruto - Season 1" />
+      <textarea id="description" placeholder="Enter brief summary of the series..."></textarea>
+      <input id="episodeCount" placeholder="e.g., 12" />
+      <input id="qualities" value="480p,720p,1080p" />
+      <input id="linkPattern" value="links/{id}-e{num}-{quality}.mp4" />
+      <button onclick="generateSeriesJSON()">Generate JSON</button>
+      <button onclick="saveSeriesToServer()">Save to Server</button>
+      <pre id="output"></pre>
+    </div>
+
+    <div id="generateJSON" class="panel form-container">
+      <h2>Merge JSON</h2>
+      <textarea id="input" placeholder="Paste JSON here..."></textarea>
+      <button onclick="mergeAndFormatJSON()">Format JSON</button>
+      <pre id="output"></pre>
+    </div>
+
+    <div id="analyticsDashboard" class="panel form-container">
+      <h2>📊 Site Analytics</h2>
+      <p>Total Movies: <strong id="totalMovies"></strong></p>
+      <p>Total Series: <strong id="totalSeries"></strong></p>
+      <p>Total Admins: <strong id="totalAdmins"></strong></p>
+      <p>Logins (Past 7 days): <strong id="recentLogins"></strong></p>
+    </div>
+
+    <div id="backupExport" class="panel form-container">
+      <h2>📥 Backup & Export Data</h2>
+      <ul>
+        <li><a href="http://localhost:3000/api/backup/admins" target="_blank">Download Admins</a></li>
+        <li><a href="http://localhost:3000/api/backup/sessions" target="_blank">Download Sessions</a></li>
+        <li><a href="http://localhost:3000/api/backup/movies" target="_blank">Download Movies</a></li>
+        <li><a href="http://localhost:3000/api/backup/series" target="_blank">Download Series</a></li>
+      </ul>
+      <button onclick="downloadBackupZip()">📦 Download Full Backup</button>
+    </div>
+
+    <div id="notifications" class="panel form-container">
+      <h2>🔔 System Notifications</h2>
+      <div id="notif_list" class="notification-list"></div>
+    </div>
+
+    <div id="changePassword" class="panel form-container">
+      <h2>Change Admin Password</h2>
+      <input id="targetUsername" placeholder="Username" />
+      <input id="newPassword" placeholder="New Password" type="password" />
+      <button onclick="changeAdminPassword()">Change Password</button>
+    </div>
+  </div>
+</body>
+</html>
