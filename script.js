@@ -1,4 +1,4 @@
-// Unified script.js for all pages (search now scans all movies globally + multi-category support)
+// Unified script.js for all pages (with global search + movie details + dropdown handling)
 
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
@@ -16,13 +16,13 @@ const isIndex = !!moviesContainer;
 const isMoviePage = window.location.pathname.includes('movie.html');
 
 if (isIndex) {
-  fetch('backend/movies.json')
+  fetch('https://moviemania-backend-k8ot.onrender.com/api/movies')
     .then(response => response.json())
     .then(data => {
       allMovies = data;
       const urlParams = new URLSearchParams(window.location.search);
       const initialCategory = urlParams.get('category');
-      const filterParam = urlParams.get('filter'); // ✅ added filter support
+      const filterParam = urlParams.get('filter');
 
       filteredMovies = allMovies.filter(movie => {
         const categories = Array.isArray(movie.category)
@@ -64,10 +64,10 @@ if (isIndex) {
     moviesContainer.innerHTML = '';
     movies.forEach(movie => {
       const movieLink = document.createElement('a');
-      movieLink.href = movie.url;
+      movieLink.href = `movie.html?id=${movie.id}`;
       movieLink.innerHTML = `
         <div class="movie-card" data-title="${movie.title}" data-details="${movie.details}">
-          <img src="${movie.image}" alt="${movie.title}">
+          <img src="${movie.poster}" alt="${movie.title}">
           <h3>${movie.title}</h3>
           <p>${movie.details}</p>
         </div>
@@ -168,7 +168,7 @@ if (isIndex) {
 
 if (isMoviePage) {
   const movieId = new URLSearchParams(window.location.search).get('id');
-  fetch('movie.json')
+  fetch('https://moviemania-backend-k8ot.onrender.com/api/movie')
     .then(res => res.json())
     .then(movies => {
       const movie = movies.find(m => m.id === movieId);
@@ -189,17 +189,27 @@ if (isMoviePage) {
       document.getElementById('link480').href = movie.downloads['480p'];
       document.getElementById('link720').href = movie.downloads['720p'];
       document.getElementById('link1080').href = movie.downloads['1080p'];
+
+      if (movie.trailer && document.getElementById('trailerEmbed')) {
+        const trailerSrc = movie.trailer.includes("watch?v=")
+          ? movie.trailer.replace("watch?v=", "embed/")
+          : movie.trailer;
+        document.getElementById('trailerEmbed').innerHTML = `
+          <iframe width="100%" height="100%" src="${trailerSrc}" frameborder="0" allowfullscreen></iframe>
+        `;
+      }
     })
     .catch(err => {
-      console.error('Error loading movie.json:', err);
+      console.error('Error loading movie data:', err);
       document.body.innerHTML = '<h2 style="text-align:center; padding: 2rem; color: white;">Error loading movie data</h2>';
     });
 }
 
-// Global Search (Searches entire movies.json on all pages)
+// Global Search (with debounce)
 if (searchInput && searchResults) {
   let allSearchableMovies = [];
-  fetch('backend/movies.json')
+
+  fetch('https://moviemania-backend-k8ot.onrender.com/api/movies')
     .then(response => response.json())
     .then(data => {
       allSearchableMovies = data;
@@ -208,7 +218,15 @@ if (searchInput && searchResults) {
       console.error('Error loading movie data for search:', err);
     });
 
-  searchInput.addEventListener('input', () => {
+  const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+  };
+
+  searchInput.addEventListener('input', debounce(() => {
     const query = searchInput.value.toLowerCase().trim();
     searchResults.innerHTML = '';
     if (query.length === 0) return;
@@ -219,7 +237,7 @@ if (searchInput && searchResults) {
     );
 
     if (matching.length === 0) {
-      searchResults.innerHTML = '<p class="no-results">No results found. Please check the name again. You can <a href="contact.html" style="color: #00f; text-decoration: underline;">contact us</a> for this movie if you cant find here</p>';
+      searchResults.innerHTML = '<p class="no-results">No results found. Please check the name again. You can <a href="contact.html" style="color: #00f; text-decoration: underline;">contact us</a> for this movie if you can\'t find it here.</p>';
       return;
     }
 
@@ -227,9 +245,9 @@ if (searchInput && searchResults) {
       const resultItem = document.createElement('div');
       resultItem.classList.add('result-item');
       resultItem.innerHTML = `
-        <a href="${movie.url}" class="result-link">
+        <a href="movie.html?id=${movie.id}" class="result-link">
           <div class="result-poster">
-            <img src="${movie.image}" alt="${movie.title}">
+            <img src="${movie.poster}" alt="${movie.title}">
           </div>
           <div class="result-details">
             <strong>${movie.title}</strong>
@@ -239,7 +257,7 @@ if (searchInput && searchResults) {
       `;
       searchResults.appendChild(resultItem);
     });
-  });
+  }, 300));
 
   searchResults.addEventListener('click', (e) => {
     const target = e.target.closest('.result-link');
@@ -248,33 +266,29 @@ if (searchInput && searchResults) {
     }
   });
 
-  // ===== New feature: Hide search results when clicking outside search area =====
   document.addEventListener('click', function (event) {
     const isClickInsideSearch = searchInput.contains(event.target) || searchResults.contains(event.target);
-
     if (!isClickInsideSearch) {
       searchResults.innerHTML = '';
     }
   });
 }
 
-// Enable dropdowns to toggle on click for mobile, and hover for desktop
+// Dropdown toggle for mobile vs desktop
 document.addEventListener('DOMContentLoaded', () => {
   const dropdowns = document.querySelectorAll('.dropdown');
-
   const isMobile = () => window.innerWidth <= 768;
 
   dropdowns.forEach(dropdown => {
     const link = dropdown.querySelector('a');
     link.addEventListener('click', (e) => {
       if (isMobile()) {
-        e.preventDefault(); // prevent navigation
+        e.preventDefault();
         dropdown.classList.toggle('active');
       }
     });
   });
 
-  // Close dropdowns if clicked outside (optional but recommended)
   document.addEventListener('click', (e) => {
     dropdowns.forEach(dropdown => {
       if (!dropdown.contains(e.target)) {

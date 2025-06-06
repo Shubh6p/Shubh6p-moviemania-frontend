@@ -3,7 +3,7 @@ const params = new URLSearchParams(window.location.search);
 const movieId = params.get('id');
 
 // Load movie data from JSON
-fetch('backend/movies.json')
+fetch('https://moviemania-backend-k8ot.onrender.com/api/movies')
   .then(res => {
     if (!res.ok) throw new Error('Network response was not ok');
     return res.json();
@@ -85,7 +85,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-fetch('backend/movies.json')
+fetch('https://moviemania-backend-k8ot.onrender.com/api/movies')
   .then(res => res.json())
   .then(movies => {
     const handleSearch = () => {
